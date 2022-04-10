@@ -82,5 +82,3 @@ def update(id, title, author, year, isbn, ord_quantity, av_quantity, dam_quantit
     conn.close()
 
 connect()
-#update(2, title="Fall of the Kumiho", author="Chelsea Harper")
-#print(view())

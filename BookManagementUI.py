@@ -438,7 +438,4 @@ b5.grid(row=6, column=5, padx=5)
 b7 = Button(button_frame, text="Close program", width=12, command=window.destroy)
 b7.grid(row=8, column=5, padx=5)
 
-#b4 = Button(window, text="Update book", width=12, command=update_command) #delete update book command; move to detail view window
-#b4.grid(row=5, column=5)
-
 window.mainloop()
