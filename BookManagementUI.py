@@ -400,17 +400,25 @@ l2.grid(row=0, column=2)
 l3 = Label(entry_frame, text="Quantity")
 l3.grid(row=0, column=4)
 
+entry_frame.columnconfigure(0, weight=0)
+entry_frame.columnconfigure(1, weight=3)
+entry_frame.columnconfigure(2, weight=0)
+entry_frame.columnconfigure(3, weight=2)
+entry_frame.columnconfigure(4, weight=0)
+entry_frame.columnconfigure(5, weight=1)
+button_frame.columnconfigure(1, weight=1)
+
 title_text = StringVar()
-e1 = Entry(entry_frame, textvariable=title_text)
-e1.grid(row=0, column=1)
+e1 = Entry(entry_frame, textvariable=title_text, width=10)
+e1.grid(row=0, column=1, sticky=EW)
 
 author_text = StringVar()
-e2 = Entry(entry_frame, textvariable=author_text)
-e2.grid(row=0, column=3)
+e2 = Entry(entry_frame, textvariable=author_text, width=10)
+e2.grid(row=0, column=3, sticky=EW)
 
 quantity_text = StringVar()
-e3 = Entry(entry_frame, textvariable=quantity_text)
-e3.grid(row=0, column=5)
+e3 = Entry(entry_frame, textvariable=quantity_text, width=5)
+e3.grid(row=0, column=5, sticky=EW)
 
 booklist = Listbox(display_frame, height=8,width=50)
 booklist.pack(side="left", fill="both", expand=TRUE)
@@ -424,18 +432,18 @@ scroller.configure(command=booklist.yview)
 booklist.bind('<<ListboxSelect>>', get_selected_row)
 
 b1 = Button(button_frame, text="View books", width=12, command=view_command)
-b1.grid(row=2, column=5, padx=5)
+b1.grid(row=2, column=1, padx=5, sticky=EW)
 
 b2 = Button(button_frame, text="Detail View", width=12, command=detail_open) #update command to pop up new window for more detailed view
-b2.grid(row=3, column=5, padx=5)
+b2.grid(row=3, column=1, padx=5, sticky=EW)
 
 b3 = Button(button_frame, text="Add book", width=12, command=add_command)
-b3.grid(row=4, column=5, padx=5)
+b3.grid(row=4, column=1, padx=5, sticky=EW)
 
 b5 = Button(button_frame, text="Delete book", width=12, command=delete_command)
-b5.grid(row=6, column=5, padx=5)
+b5.grid(row=6, column=1, padx=5, sticky=EW)
 
 b7 = Button(button_frame, text="Close program", width=12, command=window.destroy)
-b7.grid(row=8, column=5, padx=5)
+b7.grid(row=8, column=1, padx=5, sticky=EW)
 
 window.mainloop()
