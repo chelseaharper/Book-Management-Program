@@ -29,7 +29,7 @@ def insert(title, author, year, isbn, ord_quantity, av_quantity, dam_quantity, d
 def view():
     conn = sqlite3.connect("books.db")
     cur = conn.cursor()
-    cur.execute("SELECT * FROM book")
+    cur.execute("SELECT id, title, author, av_quantity FROM book")
     rows = cur.fetchall()
     conn.close()
     return rows
@@ -40,7 +40,6 @@ def search(id):
     cur.execute("SELECT * FROM book WHERE id=?", (id,))
     rows = cur.fetchall()
     conn.close()
-    print(rows)
     return rows
 
 def delete(id):

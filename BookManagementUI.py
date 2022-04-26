@@ -20,45 +20,26 @@ Close Program
 from cProfile import label
 from tkinter import *
 from tkinter import messagebox
+from tkinter import ttk
+#from tkinter import _ScreenUnits
 import BookManagement
 
-selection = []
-
-def get_selected_row(event):
-    global selected_item
-    global selection
-    index = booklist.curselection()[0]
-    selected_item = booklist.get(index)
-    selection.extend(selected_item.split("\t"))
-    selection[0] = int(selection[0])
-    selection[3] = int(selection[3])
-    e1.delete(0, END)
-    e1.insert(END, selection[1])
-    e2.delete(0, END)
-    e2.insert(END, selection[2])
-    e3.delete(0, END)
-    e3.insert(END, selection[3])
-    selection = []
+def clear_display():
+    for item in booklist.get_children():
+        booklist.delete(item)
 
 def view_command():
-    booklist.delete(0,END)
+    clear_display()
     for row in BookManagement.view():
-        line = [str(row[0]), "\t", str(row[1]), "\t", str(row[2]), "\t", str(row[5])]
-        booklist.insert(END, " ".join(line))
+        booklist.insert(parent="", index=END, iid=row[0], text="", values=row)
 
 def delete_command():
-    global selection
-    BookManagement.delete(selected_item[0])
-
-def update_command():
-    BookManagement.update(selected_item, title_text.get(), author_text.get())
+    selected = booklist.focus()
+    BookManagement.delete(selected)
 
 def detail_open():
-    global selected_item
-    if len(selected_item) == 0:
-        messagebox.showerror("No Selection", "Please select a book to view.")
-    else:
-        detail_view(selected_item)
+    selected = booklist.focus()
+    detail_view(selected)
 
 window = Tk()
 
@@ -144,9 +125,9 @@ def add_command():
     
 
 def detail_view(item):
-    items = item.split("\t")
-    entry = BookManagement.search(items[0])
-    detail_frame = LabelFrame(display_pane, text=items[1], padx=5, pady=5)
+    entry = BookManagement.search(item)
+    header = entry[0][1] + " publication information"
+    detail_frame = LabelFrame(display_pane, text=header, padx=5, pady=5)
 
     def close_frame():
         display_pane.remove(detail_frame)
@@ -377,13 +358,11 @@ def detail_view(item):
 base_pane = PanedWindow(bd=4, relief="raised")
 base_pane.pack(fill=BOTH, expand=1)
 
-display_pane = PanedWindow(base_pane, orient=VERTICAL, bd=4, relief="sunken")
+display_pane = PanedWindow(base_pane, orient=VERTICAL, bd=4, relief="sunken", width=575, height=475)
 base_pane.add(display_pane)
 
-headers = "ID\tTitle\t\tAuthor\tQuantity"
-
 entry_frame = LabelFrame(display_pane, text="", padx=5, pady=5)
-display_frame = LabelFrame(display_pane, text=headers, padx=5, pady=5)
+display_frame = LabelFrame(display_pane, text="", padx=5, pady=5)
 button_frame = LabelFrame(base_pane, text="", padx=5, pady=5)
 
 
@@ -420,8 +399,26 @@ quantity_text = StringVar()
 e3 = Entry(entry_frame, textvariable=quantity_text, width=5)
 e3.grid(row=0, column=5, sticky=EW)
 
-booklist = Listbox(display_frame, height=8,width=50)
+books_font = ("Times", "12")
+columns = ("ID", "Title", "Author", "Quantity")
+style = ttk.Style()
+style.configure("myStyle.Treeview", bd=0, font=books_font)
+style.configure("myStyle.Treeview.Heading", font=books_font)
+style.layout("myStyle.Treeview", [("myStyle.Treeview.treearea",{"sticky": "nswe"})])
+
+booklist = ttk.Treeview(display_frame, style="myStyle.Treeview", columns=columns, show="headings")
+booklist.column("#0", width=0, stretch=NO)
+booklist.column("ID", anchor=W, width=40, minwidth=25)
+booklist.column("Title", anchor=W, width=180, minwidth=25)
+booklist.column("Author", anchor=W, width=120, minwidth=25)
+booklist.column("Quantity", anchor=W, width=40, minwidth=25)
+booklist.heading("#0", text="", anchor=W)
+booklist.heading("ID", text="ID", anchor=W)
+booklist.heading("Title", text="Title", anchor=W)
+booklist.heading("Author", text="Author", anchor=W)
+booklist.heading("Quantity", text="Quantity", anchor=W)
 booklist.pack(side="left", fill="both", expand=TRUE)
+booklist["selectmode"] = "browse"
 
 scroller = Scrollbar(display_frame, orient="vertical")
 scroller.pack(side="right", fill="y")
@@ -429,12 +426,10 @@ scroller.pack(side="right", fill="y")
 booklist.configure(yscrollcommand=scroller.set)
 scroller.configure(command=booklist.yview)
 
-booklist.bind('<<ListboxSelect>>', get_selected_row)
-
 b1 = Button(button_frame, text="View books", width=12, command=view_command)
 b1.grid(row=2, column=1, padx=5, sticky=EW)
 
-b2 = Button(button_frame, text="Detail View", width=12, command=detail_open) #update command to pop up new window for more detailed view
+b2 = Button(button_frame, text="Detail View", width=12, command=detail_open)
 b2.grid(row=3, column=1, padx=5, sticky=EW)
 
 b3 = Button(button_frame, text="Add book", width=12, command=add_command)
