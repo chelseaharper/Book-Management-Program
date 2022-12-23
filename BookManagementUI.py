@@ -101,7 +101,7 @@ def add_command():
             year_text.get(),
             isbn_text.get(),
             new_quantity.get(),
-            0,
+            new_quantity.get(),
             0,
             0,
             price,
