@@ -20,26 +20,46 @@ Close Program
 from cProfile import label
 from tkinter import *
 from tkinter import messagebox
-from tkinter import ttk
-#from tkinter import _ScreenUnits
 import BookManagement
 
-def clear_display():
-    for item in booklist.get_children():
-        booklist.delete(item)
+selection = []
+
+def get_selected_row(event):
+    global selected_item
+    global selection
+    index = booklist.curselection()[0]
+    selected_item = booklist.get(index)
+    selection.extend(selected_item.split("\t"))
+    selection[0] = int(selection[0])
+    selection[3] = int(selection[3])
+    e1.delete(0, END)
+    e1.insert(END, selection[1])
+    e2.delete(0, END)
+    e2.insert(END, selection[2])
+    e3.delete(0, END)
+    e3.insert(END, selection[3])
+    selection = []
 
 def view_command():
-    clear_display()
+    booklist.delete(0,END)
     for row in BookManagement.view():
-        booklist.insert(parent="", index=END, iid=row[0], text="", values=row)
+        line = [str(row[0]), "\t", str(row[1]), "\t", str(row[2]), "\t", str(row[6])]
+        booklist.insert(END, " ".join(line))
 
 def delete_command():
-    selected = booklist.focus()
-    BookManagement.delete(selected)
+    global selection
+    BookManagement.delete(selected_item[0])
+    view_command()
+
+def update_command():
+    BookManagement.update(selected_item, title_text.get(), author_text.get())
 
 def detail_open():
-    selected = booklist.focus()
-    detail_view(selected)
+    global selected_item
+    if len(selected_item) == 0:
+        messagebox.showerror("No Selection", "Please select a book to view.")
+    else:
+        detail_view(selected_item)
 
 window = Tk()
 
@@ -101,7 +121,7 @@ def add_command():
             year_text.get(),
             isbn_text.get(),
             new_quantity.get(),
-            new_quantity.get(),
+            0,
             0,
             0,
             price,
@@ -113,9 +133,11 @@ def add_command():
         isbn_entry.delete(0, END)
         new_quantity_entry.delete(0, END)
         price_entry.delete(0, END)
+
+        view_command()
         
         add_window.destroy()
-    
+
     exit = Button(add_window, text="Cancel", width=8, command=add_window.destroy)
     exit.grid(row=3, column=3, padx=5)
 
@@ -125,13 +147,14 @@ def add_command():
     
 
 def detail_view(item):
-    entry = BookManagement.search(item)
-    header = entry[0][1] + " publication information"
-    detail_frame = LabelFrame(display_pane, text=header, padx=5, pady=5)
+    items = item.split("\t")
+    entry = BookManagement.search(items[0])
+    detail_frame = LabelFrame(display_pane, text=items[1], padx=5, pady=5)
 
     def close_frame():
         display_pane.remove(detail_frame)
         display_pane.add(display_frame)
+        view_command()
     
     def update_quantity():
         update_q = Toplevel(window)
@@ -159,7 +182,6 @@ def detail_view(item):
         don_var.set(entry[0][8])
         quant6 = Entry(update_q, textvariable=don_var)
         quant6.grid(row=2, column=1)
-        q_avail = ord_var.get() - dam_var.get() - don_var.get()
 
         quant8 = Label(update_q, text=q_avail, font="TimesNewRoman 10 bold")
         quant8.grid(row=2, column=3)
@@ -172,11 +194,12 @@ def detail_view(item):
                 entry[0][3],
                 entry[0][4],
                 ord_var.get(),
-                q_avail,
+                ord_var.get() - dam_var.get() - don_var.get(),
                 dam_var.get(),
                 don_var.get(),
                 entry[0][9],
                 entry[0][10])
+            detail_view(selected_item)
             update_q.destroy()
 
         submit = Button(update_q, text="Submit", width=15, command=quant_sub)
@@ -228,6 +251,7 @@ def detail_view(item):
                 entry[0][8],
                 entry[0][9],
                 entry[0][10])
+            detail_view(selected_item)
             update_pub.destroy()
 
         submit = Button(update_pub, text="Submit", width=15, command=pub_sub)
@@ -271,6 +295,7 @@ def detail_view(item):
                 entry[0][8],
                 new_price,
                 new_cost)
+            detail_view(selected_item)
             update_price.destroy()
 
         submit = Button(update_price, text="Submit", width=15, command=price_sub)
@@ -358,11 +383,13 @@ def detail_view(item):
 base_pane = PanedWindow(bd=4, relief="raised")
 base_pane.pack(fill=BOTH, expand=1)
 
-display_pane = PanedWindow(base_pane, orient=VERTICAL, bd=4, relief="sunken", width=575, height=475)
+display_pane = PanedWindow(base_pane, orient=VERTICAL, bd=4, relief="sunken")
 base_pane.add(display_pane)
 
+headers = "ID\tTitle\t\tAuthor\tQuantity"
+
 entry_frame = LabelFrame(display_pane, text="", padx=5, pady=5)
-display_frame = LabelFrame(display_pane, text="", padx=5, pady=5)
+display_frame = LabelFrame(display_pane, text=headers, padx=5, pady=5)
 button_frame = LabelFrame(base_pane, text="", padx=5, pady=5)
 
 
@@ -399,26 +426,8 @@ quantity_text = StringVar()
 e3 = Entry(entry_frame, textvariable=quantity_text, width=5)
 e3.grid(row=0, column=5, sticky=EW)
 
-books_font = ("Times", "12")
-columns = ("ID", "Title", "Author", "Quantity")
-style = ttk.Style()
-style.configure("myStyle.Treeview", bd=0, font=books_font)
-style.configure("myStyle.Treeview.Heading", font=books_font)
-style.layout("myStyle.Treeview", [("myStyle.Treeview.treearea",{"sticky": "nswe"})])
-
-booklist = ttk.Treeview(display_frame, style="myStyle.Treeview", columns=columns, show="headings")
-booklist.column("#0", width=0, stretch=NO)
-booklist.column("ID", anchor=W, width=40, minwidth=25)
-booklist.column("Title", anchor=W, width=180, minwidth=25)
-booklist.column("Author", anchor=W, width=120, minwidth=25)
-booklist.column("Quantity", anchor=W, width=40, minwidth=25)
-booklist.heading("#0", text="", anchor=W)
-booklist.heading("ID", text="ID", anchor=W)
-booklist.heading("Title", text="Title", anchor=W)
-booklist.heading("Author", text="Author", anchor=W)
-booklist.heading("Quantity", text="Quantity", anchor=W)
+booklist = Listbox(display_frame, height=8,width=50)
 booklist.pack(side="left", fill="both", expand=TRUE)
-booklist["selectmode"] = "browse"
 
 scroller = Scrollbar(display_frame, orient="vertical")
 scroller.pack(side="right", fill="y")
@@ -426,10 +435,12 @@ scroller.pack(side="right", fill="y")
 booklist.configure(yscrollcommand=scroller.set)
 scroller.configure(command=booklist.yview)
 
+booklist.bind('<<ListboxSelect>>', get_selected_row)
+
 b1 = Button(button_frame, text="View books", width=12, command=view_command)
 b1.grid(row=2, column=1, padx=5, sticky=EW)
 
-b2 = Button(button_frame, text="Detail View", width=12, command=detail_open)
+b2 = Button(button_frame, text="Detail View", width=12, command=detail_open) #update command to pop up new window for more detailed view
 b2.grid(row=3, column=1, padx=5, sticky=EW)
 
 b3 = Button(button_frame, text="Add book", width=12, command=add_command)
