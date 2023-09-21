@@ -261,7 +261,7 @@ def detail_view(item):
 
     def update_price_info():
         update_price = Toplevel(window)
-        update_price.title("Update Quantity Information")
+        update_price.title("Update Pricing Information")
         update_price.geometry("500x150")
 
         price1 = Label(update_price, text="Sale Price: ", font="TimesNewRoman 10 bold")
